@@ -1,0 +1,11 @@
+<?php
+$host = "localhost";
+$user = "Saida";
+$pass = "1234";
+$db = "Student_db";
+
+$conn = new mysqli($host, $user, $pass, $db);
+if ($conn->connect_error) {
+    die("Ошибка подключения: " . $conn->connect_error);
+}
+?>
