@@ -1,0 +1,290 @@
+<?php
+if (isset($_POST['clear'])) {
+    header("Location: calc.php");
+    exit;
+}
+
+$a = isset($_GET['a']) && $_GET['a'] !== '' ? (int)$_GET['a'] : 0;
+$b = isset($_GET['b']) && $_GET['b'] !== '' ? (int)$_GET['b'] : 0;
+
+$result = '';
+
+if (isset($_GET['a']) || isset($_GET['b'])) {
+    $sum = $a + $b;
+    $diff = $a - $b;
+    $prod = $a * $b;
+    $div = ($b != 0) ? ($a / $b) : 'деление на ноль невозможно';
+
+    $result = "
+        <p>Сумма: <strong>{$sum}</strong></p>
+        <p>Разность: <strong>{$diff}</strong></p>
+        <p>Произведение: <strong>{$prod}</strong></p>
+        <p>Частное: <strong>{$div}</strong></p>
+    ";
+}
+?>
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Калькулятор</title>
+    <style>
+        body { font-family: Arial; background: #e6f7ff; padding: 40px; margin: 0; }
+        .container { max-width: 400px; margin: auto; background: #ffffff; padding: 25px;
+            border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        h2 { text-align: center; color: #003366; margin-bottom: 20px; }
+        form { display: flex; flex-direction: column; gap: 15px; }
+        input[type="number"] { padding: 10px; font-size: 16px; border-radius: 6px; border: 1px solid #888; }
+        button { padding: 12px; background: #0055cc; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
+        button:hover { background: #003f99; }
+        .clear-btn { background: #cc0000; }
+        .clear-btn:hover { background: #990000; }
+        .result { margin-top: 20px; background: #f0f8ff; padding: 15px; border-radius: 8px; border-left: 5px solid #007bff; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Калькулятор</h2>
+
+    <form method="get" action="calc.php">
+        <input type="number" name="a" placeholder="Введите число a" value="<?= htmlspecialchars($a) ?>">
+        <input type="number" name="b" placeholder="Введите число b" value="<?= htmlspecialchars($b) ?>">
+        <button type="submit">Вычислить</button>
+    </form>
+            <br>
+    <form method="post" action="calc.php">
+        <button type="submit" name="clear" class="clear-btn">Очистить</button>
+    </form>
+
+    <?php if ($result): ?>
+        <div class="result">
+            <?= $result ?>
+        </div>
+    <?php endif; ?>
+
+</div>
+
+</body>
+</html>
+
+<?php
+date_default_timezone_set('Asia/Almaty');
+
+$files = glob("history/*.txt");
+
+if (isset($_POST['clear'])) {
+    foreach ($files as $file) {
+        unlink($file);
+    }
+    header("Location: history.php");
+    exit;
+}
+?>
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>История пользователей</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #ffe3c6;
+            padding: 40px;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        h2 {
+            text-align: center;
+            color: #663c00;
+        }
+        .record {
+            background: #fff4e6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 5px solid #ff9900;
+            color: #663c00;
+        }
+        .back, button {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            background: #0066cc;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .back:hover {
+            background: #004d99;
+        }
+        button {
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            background: #cc0000;
+        }
+        button:hover {
+            background: #990000;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>История пользователей</h2>
+
+    <?php
+    if (empty($files)) {
+        echo "<p>История пока пустая.</p>";
+    } else {
+        foreach ($files as $file) {
+            $content = nl2br(htmlspecialchars(file_get_contents($file)));
+            echo "<div class='record'>{$content}</div>";
+        }
+    }
+    ?>
+
+    <form method="post">
+        <button type="submit" name="clear">Очистить историю</button>
+    </form>
+
+    <a class="back" href="profile.php">Вернуться к профилю</a>
+</div>
+
+</body>
+</html>
+
+<?php
+if (isset($_POST['clear'])) {
+    header("Location: profile.php");
+    exit;
+}
+
+date_default_timezone_set('Asia/Almaty');
+$name = isset($_GET['name']) ? htmlspecialchars($_GET['name']) : 'Гость';
+$city = isset($_GET['city']) ? htmlspecialchars($_GET['city']) : 'неизвестный город';
+
+if ($name !== 'Гость' || $city !== 'неизвестный город') {
+    if (!is_dir('history')) {
+        mkdir('history');
+    }
+
+    $time = date('Y-m-d_H-i-s');
+    $file = "history/{$time}.txt";
+    $content = "Имя: {$name}\nГород: {$city}\nДата: " . date('Y-m-d H:i:s');
+
+    file_put_contents($file, $content);
+}
+?>
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Профиль</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #cde6ff;
+            padding: 40px;
+            margin: 0;
+        }
+        .container {
+            max-width: 620px;
+            margin: auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #003366;
+        }
+        p {
+            text-align: center;
+            font-size: 18px;
+            color: #003366;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        input {
+            padding: 10px;
+            border: 1px solid #888;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        button {
+            padding: 12px;
+            background: #0055cc;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #003f99;
+        }
+        .history-btn {
+            display: block;
+            margin-top: 15px;
+            text-align: center;
+            background: #009933;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .history-btn:hover {
+            background: #007a29;
+        }
+        .clear-btn {
+            background: #cc0000;
+        }
+        .clear-btn:hover {
+            background: #990000;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h2>Профиль пользователя</h2>
+
+    <p>Привет, <strong><?= $name ?></strong>!<br>
+    Добро пожаловать из города <strong><?= $city ?></strong>.</p>
+
+    <form action="profile.php" method="get">
+        <input type="text" name="name" placeholder="Введите ваше имя">
+        <input type="text" name="city" placeholder="Введите ваш город">
+        <button type="submit">Обновить данные</button> <br>
+    </form>
+
+    <form action="profile.php" method="post">
+        <button class="clear-btn" name="clear">Очистить данные</button>
+    </form>
+
+    <a class="history-btn" href="history.php">История пользователей</a>
+
+</div>
+
+</body>
+</html>
