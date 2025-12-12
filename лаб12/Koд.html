@@ -1,0 +1,257 @@
+<?php
+session_start();
+
+if (!isset($_SESSION['cart'])) {
+    $_SESSION['cart'] = [];
+}
+
+if (isset($_POST['product'])) {
+    $product = $_POST['product'];
+    $_SESSION['cart'][] = $product;
+}
+
+if (isset($_POST['clear'])) {
+    $_SESSION['cart'] = [];
+}
+?>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Корзина</title>
+</head>
+<body>
+    <h1>Корзина покупок</h1>
+    <form method="post">
+        <input type="text" name="product" placeholder="Введите название товара" required>
+        <button type="submit">Добавить</button>
+    </form>
+    <h2>Товары в корзине:</h2>
+    <ul>
+        <?php foreach ($_SESSION['cart'] as $item): ?>
+            <li><?= htmlspecialchars($item) ?></li>
+        <?php endforeach; ?>
+    </ul>
+    <form method="post">
+        <button type="submit" name="clear">Очистить корзину</button>
+    </form>
+    <p><a href="index.php">На главную</a></p>
+</body>
+</html>
+<?php
+setcookie("user", "Damir", time() + 3600, "/", "", true, true);
+echo "Cookie установлено.";
+<?php
+session_start();
+if (!isset($_SESSION['username'])) {
+    $_SESSION['username'] = "Гость";
+}
+$theme = $_COOKIE['theme'] ?? 'light';
+$font = $_COOKIE['font'] ?? 'medium';
+?>
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Персональные настройки</title>
+    <style>
+        body {
+            font-family: 'Verdana', sans-serif;
+            margin: 0;
+            padding: 0;
+            transition: all 0.3s ease;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .dark-theme body {
+            background-color: #1a1a1a;
+            color: #eee;
+        }
+        .container {
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 25px;
+            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .dark-theme .container {
+            background-color: rgba(40, 40, 40, 0.95);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        select, input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            width: 100%;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        .dark-theme select, .dark-theme input {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #555;
+        }
+        button {
+            padding: 12px;
+            border-radius: 6px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        p {
+            text-align: center;
+        }
+        .font-small { font-size: 14px; }
+        .font-medium { font-size: 18px; }
+        .font-large { font-size: 22px; }
+    </style>
+</head>
+<body class="<?= ($theme == 'dark' ? 'dark-theme' : '') ?> font-<?= $font ?>">
+    <div class="container">
+        <h1>Добро пожаловать, <?= htmlspecialchars($_SESSION['username']) ?>!</h1>
+        <p>
+            <a href="settings.php">Изменить настройки</a> | 
+            <a href="logout.php">Выйти</a>
+        </p>
+        <?php
+        if (!isset($_SESSION['cart'])) {
+            $_SESSION['cart'] = [];
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (isset($_POST['product'])) {
+                $_SESSION['cart'][] = $_POST['product'];
+            }
+            if (isset($_POST['clear'])) {
+                $_SESSION['cart'] = [];
+            }
+        }
+        ?>
+        <h2>Корзина покупок</h2>
+        <form method="post">
+            <input type="text" name="product" placeholder="Добавить товар">
+            <button type="submit">Добавить</button>
+            <button type="submit" name="clear">Очистить корзину</button>
+        </form>
+
+        <?php if (!empty($_SESSION['cart'])): ?>
+            <ul>
+                <?php foreach ($_SESSION['cart'] as $item): ?>
+                    <li><?= htmlspecialchars($item) ?></li>
+                <?php endforeach; ?>
+            </ul>
+        <?php else: ?>
+            <p>Корзина пуста</p>
+        <?php endif; ?>
+    </div>
+</body>
+</html>
+<?php
+if (isset($_COOKIE['lang'])) {
+    $lang = $_COOKIE['lang'];
+} else {
+    $lang = 'ru';
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lang'])) {
+    $lang = $_POST['lang'];
+    setcookie("lang", $lang, time() + 60 * 60 * 24 * 30, "/", "", true, true);
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
+}
+
+$texts = [
+    'ru' => ['title' => 'Добро пожаловать!', 'select' => 'Выберите язык', 'cart' => 'Корзина покупок'],
+    'en' => ['title' => 'Welcome!', 'select' => 'Choose language', 'cart' => 'Shopping Cart']
+];
+?>
+<!DOCTYPE html>
+<html lang="<?= htmlspecialchars($lang) ?>">
+<head>
+    <meta charset="UTF-8">
+    <title><?= $texts[$lang]['title'] ?></title>
+</head>
+<body>
+    <h1><?= $texts[$lang]['title'] ?></h1>
+    <form method="post">
+        <label><?= $texts[$lang]['select'] ?>:</label>
+        <select name="lang">
+            <option value="ru" <?= $lang == 'ru' ? 'selected' : '' ?>>Русский</option>
+            <option value="en" <?= $lang == 'en' ? 'selected' : '' ?>>English</option>
+        </select>
+        <button type="submit">OK</button>
+    </form>
+    <p><a href="cart.php"><?= $texts[$lang]['cart'] ?></a></p>
+</body>
+</html>
+<?php
+session_start();
+session_destroy();
+header("Location: home.php");
+exit;
+<?php
+session_start();
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $theme = $_POST['theme'];
+    $font = $_POST['font'];
+    $username = trim($_POST['username']);
+
+    if ($username !== '') {
+        $_SESSION['username'] = $username;
+    }
+
+    setcookie("theme", $theme, time() + 60 * 60 * 24 * 30, "/", "", true, true);
+    setcookie("font", $font, time() + 60 * 60 * 24 * 30, "/", "", true, true);
+
+    header("Location: home.php");
+    exit;
+}
+?>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Настройки</title>
+</head>
+<body>
+    <h1>Настройки профиля</h1>
+    <form method="post">
+        <label>Имя пользователя:</label><br>
+        <input type="text" name="username" placeholder="Введите имя"><br><br>
+
+        <label>Тема оформления:</label><br>
+        <select name="theme">
+            <option value="light">Светлая</option>
+            <option value="dark">Тёмная</option>
+        </select><br><br>
+
+        <label>Размер шрифта:</label><br>
+        <select name="font">
+            <option value="small">Малый</option>
+            <option value="medium" selected>Средний</option>
+            <option value="large">Большой</option>
+        </select><br><br>
+
+        <button type="submit">Сохранить</button>
+    </form>
+    <p><a href="home.php">Назад</a></p>
+</body>
+</html>
